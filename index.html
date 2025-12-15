@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Track App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Google Maps API -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZFOdJshd47cJr7yUo-VtMAQYTVr0v2iw&callback=initMap" async defer></script>
+</head>
+<body>
+
+<header>
+  <h1>📍 Track App</h1>
+  <p>Live tracking & manual location tracking</p>
+</header>
+
+<div class="container">
+
+  <!-- Controls -->
+  <div class="controls">
+    <button onclick="startTracking()">Start Live Tracking</button>
+    <button class="stop" onclick="stopTracking()">Stop Tracking</button>
+  </div>
+
+  <!-- Manual location input -->
+  <div class="manual-track">
+    <h3>Track by Latitude & Longitude</h3>
+    <input type="number" id="lat" placeholder="Latitude" step="any">
+    <input type="number" id="lng" placeholder="Longitude" step="any">
+    <button onclick="trackByCoordinates()">Track Location</button>
+  </div>
+
+  <p id="status">Status: Not tracking</p>
+
+  <!-- Map -->
+  <div id="map"></div>
+
+</div>
+
+<footer>
+  © 2025 Track App
+</footer>
+
+<!-- JS -->
+<script src="script.js"></script>
+
+</body>
+</html>

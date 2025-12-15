@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Track App - Live GPS Tracking</title>
+<style>
+  /* Reset & body */
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f4f6f8;
+    color: #333;
+  }
+
+  /* Header */
+  header {
+    background: #007bff;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 28px;
+  }
+
+  header p {
+    margin: 5px 0 0 0;
+    font-size: 16px;
+    opacity: 0.9;
+  }
+
+  /* Container */
+  .container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 15px;
+  }
+
+  /* Buttons */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+
+  button {
+    padding: 10px 20px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  button:hover { background: #218838; }
+
+  button.stop { background: #dc3545; }
+  button.stop:hover { background: #c82333; }
+
+  #status {
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+
+  /* Map type selector */
+  .map-type-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+
+  .map-type-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 5px;
+    width: 90px;
+    transition: 0.2s;
+    background: white;
+  }
+
+  .map-type-option img {
+    width: 80px;
+    height: 50px;
+    border-radius: 5px;
+    object-fit: cover;
+  }
+
+  .map-type-option span {
+    margin-top: 3px;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .map-type-option:hover {
+    border-color: #007bff;
+  }
+
+  /* Map */
+  #map {
+    height: 600px;
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 15px;
+    font-size: 14px;
+    color: #666;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Track App</h1>
+  <p>Live GPS Tracking with Google Maps</p>
+</header>
+
+<div class="container">
+  <div class="controls">
+    <button onclick="startTracking()">Start Tracking</button>
+    <button class="stop" onclick="stopTracking()">Stop Tracking</button>
+  </div>
+
+  <div class="map-type-selector">
+    <div class="map-type-option" onclick="changeMapType('roadmap')">
+      <img src="https://i.imgur.com/2f0p1gT.png" alt="Roadmap">
+      <span>Roadmap</span>
+    </div>
+    <div class="map-type-option" onclick="changeMapType('satellite')">
+      <img src="https://i.imgur.com/8lYcoIp.png" alt="Satellite">
+      <span>Satellite</span>
+    </div>
+    <div class="map-type-option" onclick="changeMapType('terrain')">
+      <img src="https://i.imgur.com/2vX4U7g.png" alt="Terrain">
+      <span>Terrain</span>
+    </div>
+    <div class="map-type-option" onclick="changeMapType('hybrid')">
+      <img src="https://i.imgur.com/VLML7Nx.png" alt="Hybrid">
+      <span>Hybrid</span>
+    </div>
+  </div>
+
+  <p id="status">Status: Not tracking</p>
+  <div id="map"></div>
+</div>
+
+<footer>
+  &copy; 2025 Track App. All rights reserved.
+</footer>
+
+<!-- Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZFOdJshd47cJr7yUo-VtMAQYTVr0v2iw&callback=initMap" async defer></script>
+
+<script>
+let map;
+let marker;
+let watchId = null;
+
+// Initialize map
+function initMap() {
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: { lat: 0, lng: 0 },
+    zoom: 2,
+    mapTypeId: "satellite"
+  });
+}
+
+// Change map type dynamically
+function changeMapType(type) {
+  map.setMapTypeId(type);
+}
+
+// Start live tracking
+function startTracking() {
+  const status = document.getElementById("status");
+  if (navigator.geolocation) {
+    status.innerHTML = "Status: Starting live tracking...";
+    watchId = navigator.geolocation.watchPosition(
+      showPosition,
+      showError,
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  } else {
+    status.innerHTML = "Geolocation is not supported by this browser.";
+  }
+}
+
+// Stop live tracking
+function stopTracking() {
+  const status = document.getElementById("status");
+  if (watchId !== null) {
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+    status.innerHTML = "Status: Live tracking stopped.";
+  }
+}
+
+// Show position on map
+function showPosition(position) {
+  const lat = position.coords.latitude;
+  const lng = position.coords.longitude;
+  const status = document.getElementById("status");
+  status.innerHTML = `Status: Tracking... Latitude: ${lat.toFixed(6)}, Longitude: ${lng.toFixed(6)}`;
+
+  const userLatLng = { lat, lng };
+  map.setCenter(userLatLng);
+  map.setZoom(18);
+
+  if (marker) marker.setMap(null);
+
+  marker = new google.maps.Marker({
+    position: userLatLng,
+    map: map,
+    title: "You are here!"
+  });
+}
+
+// Handle errors
+function showError(error) {
+  const status = document.getElementById("status");
+  switch (error.code) {
+    case error.PERMISSION_DENIED:
+      status.innerHTML = "Status: User denied the request for Geolocation.";
+      break;
+    case error.POSITION_UNAVAILABLE:
+      status.innerHTML = "Status: Location information is unavailable.";
+      break;
+    case error.TIMEOUT:
+      status.innerHTML = "Status: The request to get user location timed out.";
+      break;
+    case error.UNKNOWN_ERROR:
+      status.innerHTML = "Status: An unknown error occurred.";
+      break;
+  }
+}
+</script>
+
+</body>
+</html>
